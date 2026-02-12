@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log
+logs/
+
+# Local environment/config secrets
+.env
+.env.*
+.env.example
+.env.example.*
+
+# Cloudflare Worker local vars/secrets
+worker/.dev.vars
+worker/.dev.vars.*
+!worker/.dev.vars.example
+.wrangler/
+
+# Credential files / secrets
+service_account.json
+*service_account*.json
+credentials*.json
+secrets*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
