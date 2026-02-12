@@ -24,9 +24,7 @@ class SeaTalkAuthManager:
                 "app_id": settings.seatalk_app_id,
                 "app_secret": settings.seatalk_app_secret,
             }
-            response = requests.post(settings.seatalk_auth_url, json=payload, timeout=15)
-            response.raise_for_status()
-            data: dict[str, Any] = response.json()
+            data = self._fetch_token_payload(payload)
 
             token = (
                 data.get("app_access_token")
@@ -51,3 +49,27 @@ class SeaTalkAuthManager:
             self._access_token = str(token)
             self._expires_at = now + int(expires_in)
             return self._access_token
+
+    @staticmethod
+    def _normalize_auth_url(url: str) -> str:
+        normalized = (url or "").strip()
+        if not normalized:
+            return "https://openapi.seatalk.io/auth/app_access_token"
+        return normalized
+
+    def _fetch_token_payload(self, payload: dict[str, Any]) -> dict[str, Any]:
+        primary_url = self._normalize_auth_url(settings.seatalk_auth_url)
+        fallback_url = "https://openapi.seatalk.io/auth/app_access_token"
+
+        try:
+            response = requests.post(primary_url, json=payload, timeout=15)
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as exc:
+            status_code = exc.response.status_code if exc.response is not None else None
+            # Compatibility fallback for outdated auth URL configuration.
+            if status_code == 404 and primary_url != fallback_url:
+                response = requests.post(fallback_url, json=payload, timeout=15)
+                response.raise_for_status()
+                return response.json()
+            raise

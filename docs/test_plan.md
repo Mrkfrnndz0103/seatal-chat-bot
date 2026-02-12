@@ -76,7 +76,7 @@ $body = @{
   }
 } | ConvertTo-Json -Depth 10
 
-Invoke-RestMethod -Method Post -Uri "$BACKEND_URL/seatalk/callback" -ContentType "application/json" -Body $body
+Invoke-RestMethod -Method Post -Uri "$WORKER_URL/seatalk/callback" -ContentType "application/json" -Body $body
 ```
 
 Expected:
