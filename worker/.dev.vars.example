@@ -1,2 +1,2 @@
 # Cloudflare Worker local env
-BOT_SERVER_URL=https://seatalk-bot.romark-fernandez.workers.dev/
+BOT_SERVER_URL=https://seatalk-chat-bot.onrender.com

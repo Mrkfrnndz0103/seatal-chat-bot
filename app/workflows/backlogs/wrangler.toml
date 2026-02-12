@@ -1,0 +1,12 @@
+name = "backlogs-worker"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+MAX_ROW_COUNT = "500000"
+# Set these in the Cloudflare dashboard or with `wrangler secret put`:
+# GOOGLE_CLIENT_EMAIL
+# GOOGLE_PRIVATE_KEY
+# BACKLOGS_DRIVE_FOLDER_ID
+# FASTAPI_WEBHOOK_URL
+# FASTAPI_WEBHOOK_TOKEN (optional)

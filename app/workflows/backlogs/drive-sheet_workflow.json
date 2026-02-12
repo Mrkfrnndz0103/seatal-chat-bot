@@ -1,0 +1,1756 @@
+{
+  "name": "drive-sheet_workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1oU9kj5VIJIoNrR388wYCHSdtHGanRrgZ"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -160
+      ],
+      "id": "93561702-c79f-4430-aa8d-ad27799259e2",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "l4y6bRafEGQSt2xj",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{$node[\"Google Drive Trigger\"].json[\"id\"]}}",
+          "mode": "id"
+        },
+        "options": {
+          "fileName": "={{$node[\"Google Drive Trigger\"].json[\"name\"]}}"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        256,
+        -96
+      ],
+      "id": "953531f5-d593-4818-a31c-c7765908b046",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "l4y6bRafEGQSt2xj",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "csv",
+        "options": {
+          "headerRow": true,
+          "maxRowCount": "={{$env.MAX_ROW_COUNT || 500000}}"
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        -96
+      ],
+      "id": "9638b843-d05c-4a5e-ab58-83463c47f014",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res",
+          "mode": "list",
+          "cachedResultName": "[SOC 5] Outbound Internal SOCPacked Report v1.0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "socpacked_generated_data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/edit#gid=0"
+        },
+        "clear": "specificRange",
+        "range": "A2:J"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1136,
+        -96
+      ],
+      "id": "5f2e598c-176e-4d85-aaab-9e7afc63d770",
+      "name": "Clear sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "J7JzsEbym4B6cunI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "outputPrefix": "=file_"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "a6236b07-b2f0-412b-81be-d800f7ee45fe",
+      "name": "Decompress"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9d570883-4759-489f-9a17-459060cdfa53",
+              "leftValue": "={{$json.mimeType}}",
+              "rightValue": "application/x-zip-compressed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "5c9b79d2-8019-4df2-8ca4-6e6d5ddcd889",
+              "leftValue": "={{$json.mimeType}}",
+              "rightValue": "application/zip",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c5c86d3c-f4df-425c-a6bc-a19d2a934591",
+              "leftValue": "={{$json.fileExtension}}",
+              "rightValue": "zip",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "117e8b78-bb11-4b41-b2b7-eb10106d6376",
+              "leftValue": "={{$json.name}}",
+              "rightValue": ".zip",
+              "operator": {
+                "type": "string",
+                "operation": "endsWith"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -112,
+        -80
+      ],
+      "id": "8e2ffb09-c4a0-44ec-881d-cf7a0a315218",
+      "name": "ZIP-only check"
+    },
+    {
+      "parameters": {
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!B1",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        112,
+        -96
+      ],
+      "id": "75d3b79e-417b-45cc-8134-adf7d2c86eab",
+      "name": "GET last processed file id",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function norm(v) {\n  return String(v ?? '').trim().toLowerCase();\n}\n\n// Remove BOM if present in the first header\nfunction stripBom(s) {\n  return typeof s === 'string' ? s.replace(/^\\ufeff/, '') : s;\n}\n\n// Find a key even if it has BOM or minor spacing differences\nfunction findKey(obj, wanted) {\n  const w = wanted.replace(/\\s+/g, '').replace(/_/g, '').toLowerCase();\n  for (const k of Object.keys(obj || {})) {\n    const nk = stripBom(k).replace(/\\s+/g, '').replace(/_/g, '').toLowerCase();\n    if (nk === w) return k;\n  }\n  return null;\n}\n\nconst first = items[0]?.json || {};\n\n// Resolve headers (robust to BOM/spacing)\nconst k = {\n  toNumber: findKey(first, 'TO Number'),\n  spxTracking: findKey(first, 'SPX Tracking Number'),\n  receiverName: findKey(first, 'Receiver Name'),\n  toQty: findKey(first, 'TO Order Quantity'),\n  operator: findKey(first, 'Operator'),\n  createTime: findKey(first, 'Create Time'),\n  completeTime: findKey(first, 'Complete Time'),\n  remark: findKey(first, 'Remark'),\n  receiveStatus: findKey(first, 'Receive Status'),\n  stagingAreaId: findKey(first, 'Staging Area ID'),\n  receiverType: findKey(first, 'Receiver type'),\n  currentStation: findKey(first, 'Current Station'),\n};\n\nconst required = [\n  ['TO Number', k.toNumber],\n  ['SPX Tracking Number', k.spxTracking],\n  ['Receiver Name', k.receiverName],\n  ['TO Order Quantity', k.toQty],\n  ['Operator', k.operator],\n  ['Create Time', k.createTime],\n  ['Complete Time', k.completeTime],\n  ['Receive Status', k.receiveStatus],\n  ['Staging Area ID', k.stagingAreaId],\n  ['Receiver type', k.receiverType],\n  ['Current Station', k.currentStation],\n];\n\nconst missing = required.filter(([, v]) => !v).map(([name]) => name);\nif (missing.length) {\n  throw new Error('Missing required columns: ' + missing.join(', '));\n}\n\nconst keptRows = [];\n\nfor (const it of items) {\n  const rt = norm(it.json[k.receiverType]);\n  const cs = norm(it.json[k.currentStation]);\n\n  if (rt === 'station' && cs === 'soc 5') {\n    keptRows.push([\n      it.json[k.toNumber] ?? '',\n      it.json[k.spxTracking] ?? '',\n      it.json[k.receiverName] ?? '',\n      it.json[k.toQty] ?? '',\n      it.json[k.operator] ?? '',\n      it.json[k.createTime] ?? '',\n      it.json[k.completeTime] ?? '',\n      (k.remark ? (it.json[k.remark] ?? '') : ''),\n      it.json[k.receiveStatus] ?? '',\n      it.json[k.stagingAreaId] ?? '',\n    ]);\n  }\n}\n\nreturn [{\n  json: {\n    values: keptRows,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -96
+      ],
+      "id": "b8e75020-be84-48d2-a461-3493589eb58e",
+      "name": "Filter + map"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values:batchUpdate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"valueInputOption\": \"RAW\",\n  \"data\": {{$json.data}}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1328,
+        -112
+      ],
+      "id": "06c101c4-e87f-448a-bc58-e213b020d696",
+      "name": "PUT bulk data",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!A3:C",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1664,
+        -272
+      ],
+      "id": "0b2ac061-7f55-4850-9d8f-ba3574fb8b4b",
+      "name": "LOG THE RUN",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const existing = $input.first().json.values || [];\n\n// values comes from the earlier filter/map Code node and is still available in the current item chain\nconst values = $items().find(it => Array.isArray(it.json?.values))?.json.values || [];\n\nconst tz = $env.NOTIF_TZ || 'Asia/Manila';\n\nfunction localDateTime(d = new Date()) {\n  const parts = new Intl.DateTimeFormat('en-US', {\n    timeZone: tz,\n    year: 'numeric',\n    month: 'numeric',\n    day: 'numeric',\n    hour: 'numeric',\n    minute: '2-digit',\n    second: '2-digit',\n    hour12: false,\n  }).formatToParts(d);\n\n  const get = (t) => parts.find(p => p.type === t)?.value;\n  // M/D/YYYY HH:mm:ss\n  return `${get('month')}/${get('day')}/${get('year')} ${get('hour')}:${get('minute')}:${get('second')}`;\n}\n\nconst checkTime = localDateTime(new Date());\nconst status = (values.length === 0) ? \"No Changes\" : \"Updated\";\nconst importCompleteTime = localDateTime(new Date());\n\nconst newRow = [checkTime, status, importCompleteTime];\n\nconst combined = [newRow, ...existing];\n\n// Keep last 500 log entries\nconst MAX_ROWS = 500;\nconst finalValues = combined.slice(0, MAX_ROWS);\n\nreturn [\n  {\n    json: {\n      majorDimension: \"ROWS\",\n      values: finalValues,\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        -192
+      ],
+      "id": "259c0e9a-437e-480b-b3cd-0c175e829477",
+      "name": "Build new log block"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!A3:C?valueInputOption=RAW",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "majorDimension",
+              "value": "ROWS"
+            },
+            {
+              "name": "values",
+              "value": "={{$json.values}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1648,
+        -64
+      ],
+      "id": "15b5df2b-7a78-405c-a85e-cc1ef0809dfb",
+      "name": "Write updated log block back",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!B1?valueInputOption=RAW",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"majorDimension\": \"ROWS\",\n  \"values\": [[\"{{$node['Google Drive Trigger'].json['id']}}\"]]\n}\n",
+        "options": {
+          "response": {}
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1824,
+        0
+      ],
+      "id": "950dad6a-c000-4979-aa18-07038394c179",
+      "name": "SAVE LAST PROCESSED FILE ID",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let values = items?.[0]?.json?.values;\n\nif (!Array.isArray(values)) {\n  const data = this.getWorkflowStaticData('global');\n  const key = `values_${$execution.id}`;\n  values = data[key];\n  if (key in data) delete data[key];\n}\n\nif (!Array.isArray(values)) {\n  throw new Error('Make chunks: values is missing or not an array');\n}\nif (values.length === 0) {\n  return [];\n}\n\n// IMPORTANT: Your sheet uses A:J (10 columns)\nconst START_ROW = 2;\nconst START_COL = 'A';\nconst END_COL = 'J';\n\n// Safer chunk size for Google Sheets API\nlet CHUNK_SIZE = 3000;\nif (values.length >= 100000) CHUNK_SIZE = 2000;\nelse if (values.length >= 50000) CHUNK_SIZE = 3000;\nelse CHUNK_SIZE = 5000;\n\nconst out = [];\n\nfor (let offset = 0; offset < values.length; offset += CHUNK_SIZE) {\n  const chunk = values.slice(offset, offset + CHUNK_SIZE);\n\n  const startRow = START_ROW + offset;\n  const endRow = startRow + chunk.length - 1;\n\n  out.push({\n    json: {\n      range: `socpacked_generated_data!${START_COL}${startRow}:${END_COL}${endRow}`,\n      values: chunk,\n      chunkLen: chunk.length,\n      chunkIndex: Math.floor(offset / CHUNK_SIZE) + 1,\n      chunkCount: Math.ceil(values.length / CHUNK_SIZE),\n    }\n  });\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        -96
+      ],
+      "id": "e9bf5927-c26e-4180-9ba0-54d409d00feb",
+      "name": "make chunks"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1328,
+        -256
+      ],
+      "id": "ce16c97e-72be-4ea3-8b34-8d582e93c2e4",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        32
+      ],
+      "id": "cf3d5de0-40cb-45e0-b77d-f21917c06bce"
+    },
+    {
+      "parameters": {
+        "content": "PHASE 1",
+        "height": 304,
+        "width": 1136,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "3c99ca79-bb69-4178-97e0-33bf7a82ef1d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "PHASE 2",
+        "height": 304,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "691a4809-f5be-46ad-9514-82a621623295",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "PHASE 3",
+        "height": 304,
+        "width": 272,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        816,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "4f0b4d6e-2c7e-4737-93ef-2b39019e0e22",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "PHASE 4",
+        "height": 528,
+        "width": 496,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1088,
+        -304
+      ],
+      "typeVersion": 1,
+      "id": "5f5fb9bb-3f89-4263-979c-933be440e6a6",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "PHASE 5",
+        "height": 528,
+        "width": 384,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1584,
+        -304
+      ],
+      "typeVersion": 1,
+      "id": "c79430c8-a563-4b45-9ae2-7ff294495abe",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "/**\n * Merge ALL CSV files extracted from ZIP (works with filesystem binary mode)\n * - Reads binary via n8n helper (works even when binary.data is just a reference)\n * - Handles UTF-8 / UTF-16LE (Excel CSV)\n * - Removes NULL characters\n * - Keeps first header only\n *\n * Output: ONE item with binary field `csv` (merged.csv)\n */\n\nfunction isCsv(name) {\n  return typeof name === 'string' && name.toLowerCase().endsWith('.csv');\n}\n\nfunction getFileName(bin, key) {\n  return (bin?.fileName || key || '').toString();\n}\n\nfunction looksUtf16le(buf) {\n  const hasBom = buf.length >= 2 && buf[0] === 0xFF && buf[1] === 0xFE;\n  if (hasBom) return true;\n\n  const probeLen = Math.min(200, buf.length);\n  let nulls = 0;\n  for (let i = 0; i < probeLen; i++) if (buf[i] === 0x00) nulls++;\n  return nulls > probeLen * 0.2;\n}\n\nfunction normalize(text) {\n  return text\n    .replace(/\\u0000/g, '')     // important for Excel UTF-16\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\r/g, '\\n');\n}\n\n// Collect CSV binaries (and remember item index + binary key)\nconst csvFiles = [];\n\nfor (let itemIndex = 0; itemIndex < items.length; itemIndex++) {\n  const binaries = items[itemIndex].binary || {};\n  for (const [key, bin] of Object.entries(binaries)) {\n    const name = getFileName(bin, key);\n    if (!isCsv(name)) continue;\n    csvFiles.push({ name, itemIndex, key });\n  }\n}\n\nif (csvFiles.length === 0) {\n  throw new Error('Merge CSV: No CSV files found in ZIP output.');\n}\n\n// Fast path: single CSV (no re-encode)\nif (csvFiles.length === 1) {\n  const { itemIndex, key } = csvFiles[0];\n  const bin = items[itemIndex].binary?.[key];\n  if (!bin) throw new Error('Merge CSV: single CSV binary missing');\n\n  return [{\n    json: {\n      mergedCsvFileCount: 1,\n    },\n    binary: {\n      csv: {\n        ...bin,\n        fileName: 'merged.csv',\n        mimeType: bin.mimeType || 'text/csv',\n      }\n    }\n  }];\n}\n\n// Sort predictable order\ncsvFiles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));\n\nconst mergedLines = [];\nlet totalDataRows = 0;\n\nfor (let i = 0; i < csvFiles.length; i++) {\n  const { itemIndex, key } = csvFiles[i];\n\n  // IMPORTANT: use helper to read full content (works in filesystem mode)\n  const buf = await this.helpers.getBinaryDataBuffer(itemIndex, key);\n\n  const decoded = looksUtf16le(buf) ? buf.toString('utf16le') : buf.toString('utf8');\n  const text = normalize(decoded);\n\n  let lines = text.split('\\n');\n  while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();\n  if (lines.length === 0) continue;\n\n  if (i === 0) {\n    // keep header from first file\n    mergedLines.push(lines[0]);\n    const data = lines.slice(1).filter(l => l.trim() !== '');\n    totalDataRows += data.length;\n    mergedLines.push(...data);\n  } else {\n    const data = lines.slice(1).filter(l => l.trim() !== '');\n    totalDataRows += data.length;\n    mergedLines.push(...data);\n  }\n}\n\nif (mergedLines.length === 0) {\n  throw new Error('Merge CSV: Merge produced no content.');\n}\n\nconst mergedText = mergedLines.join('\\n') + '\\n';\n\nreturn [{\n  json: {\n    mergedCsvFileCount: csvFiles.length,\n    mergedDataRowCount: totalDataRows,\n  },\n  binary: {\n    csv: {\n      data: Buffer.from(mergedText, 'utf8').toString('base64'),\n      mimeType: 'text/csv',\n      fileName: 'merged.csv',\n    },\n  },\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        -96
+      ],
+      "id": "63d66200-97e0-445a-ac12-acf551206272",
+      "name": "Merge all csv",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!F1?valueInputOption=RAW ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"majorDimension\": \"ROWS\",\n  \"values\": [[\"RUNNING\"]]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -320,
+        -80
+      ],
+      "id": "4160e4fa-f1e8-437e-86ea-9baccefa5fd4",
+      "name": "Prevent clearing",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!F1?valueInputOption=RAW ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"majorDimension\": \"ROWS\",\n  \"values\": [[\"IDLE\"]]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2016,
+        0
+      ],
+      "id": "8f33327e-2a0f-48e0-9e1d-cfbc7f9cf1dd",
+      "name": "Prevent clearing1",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ 10 }}",
+        "unit": "=seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2496,
+        -256
+      ],
+      "id": "f19e516c-2e78-4fa1-9897-ca172814edcf",
+      "name": "10sec waiting",
+      "webhookId": "dedb7b82-67f1-45dc-b97a-9bb2d965c49f"
+    },
+    {
+      "parameters": {
+        "url": "https://docs.google.com/spreadsheets/d/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/export",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "format",
+              "value": "png"
+            },
+            {
+              "name": "gid",
+              "value": "2030780141"
+            },
+            {
+              "name": "range",
+              "value": "B2:R59"
+            },
+            {
+              "name": "scale",
+              "value": "2"
+            },
+            {
+              "name": "sheetnames",
+              "value": "false"
+            },
+            {
+              "name": "printtitle",
+              "value": "false"
+            },
+            {
+              "name": "gridlines",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "img_1"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2656,
+        -256
+      ],
+      "id": "f6ec32cf-bba0-41de-bbf9-9679468c9e9f",
+      "name": "EXPORT DASHBOARD png",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const tz = $env.NOTIF_TZ || 'UTC';\nconst d = new Date();\n\nconst parts = new Intl.DateTimeFormat('en-US', {\n  timeZone: tz,\n  hour: 'numeric',\n  minute: '2-digit',\n  hour12: true,\n  month: 'short',\n  day: 'numeric'\n}).formatToParts(d);\n\nconst get = (t) => parts.find(p => p.type === t)?.value;\n\nconst time = `${get('hour')}:${get('minute')} ${get('dayPeriod')}`;\nconst date = `${get('month')}-${get('day')}`;\n\nreturn [{\n  json: {\n    seatalk_text: `OB Pending for Dispatch as of ${time} ${date}`\n  },\n  binary: $binary\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2832,
+        -256
+      ],
+      "id": "f6c1e371-7847-45ed-8454-feac9fb6b7b4",
+      "name": "BUILD SEATALK TEXT (TZ"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openapi.seatalk.io/webhook/group/wmzx1tyyTW26LD9wKhgFCw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tag\": \"text\",\n  \"text\": {\n    \"format\": 2,\n    \"content\": \"={{$json.seatalk_text}}\",\n    \"at_all\": true\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3248,
+        -256
+      ],
+      "id": "232421b1-dedc-4db7-8ae2-0a2c39d83250",
+      "name": "SEATALK WEBHOOK SEND TEXT",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8362306d-7dc1-44c6-982b-b393930650c1",
+              "leftValue": "={{$json.code === 0}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3424,
+        -256
+      ],
+      "id": "f2f9833c-d79e-4838-9e23-32795319eefc",
+      "name": "TEXT SENT OK?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openapi.seatalk.io/webhook/group/wmzx1tyyTW26LD9wKhgFCw",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tag\": \"image\",\n  \"image_base64\": {\n    \"content\": \"={{$json.img_base64}}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3856,
+        -352
+      ],
+      "id": "893e9b7f-d7ae-4d65-8d55-920a710d4a36",
+      "name": "SEATALK WEBHOOK SEND IMAGE",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9bd584c-0f46-490a-8447-5e6bafab277e",
+              "name": "retryCount",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "6c562d0d-8f23-46ce-80e4-a7121e2776c0",
+              "name": "maxRetries",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "c5e9c821-5268-4f16-ae46-61f0636d4761",
+              "name": "retryDelaySec",
+              "value": 5,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3040,
+        -256
+      ],
+      "id": "a6babc14-4779-455b-98e0-117ddd560869",
+      "name": "INIT NOTIFICATION CONTEXT"
+    },
+    {
+      "parameters": {
+        "jsCode": "const retryCount = ($json.retryCount ?? 0) + 1;\nreturn [{ json: { ...$json, retryCount } , binary: $binary }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3680,
+        -112
+      ],
+      "id": "0dfeb9e1-916a-44e6-b779-8f2fb181f371",
+      "name": "INCREMENT RETRY COUNT (TEXT)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "68c1f391-36ed-485e-9677-b307ac642543",
+              "leftValue": "=={{$json.retryCount <= $json.maxRetries}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3888,
+        -112
+      ],
+      "id": "4c0ade37-8a7e-48a0-a4e7-5fe4e7aab702",
+      "name": "RETRY LEFT? (TEXT)"
+    },
+    {
+      "parameters": {
+        "amount": "=={{$json.retryDelaySec}}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4192,
+        -144
+      ],
+      "id": "0a493d73-cf11-461c-8c52-97a7e4a1e452",
+      "name": "WAIT BEFORE RETRY (TEXT)",
+      "webhookId": "d1866b6e-d401-499e-bd42-e2e7d4d9e6ca"
+    },
+    {
+      "parameters": {
+        "jsCode": "const b64 = $binary.img_1.data;\n\n// SeaTalk system account: max 5MB after base64 encoding :contentReference[oaicite:7]{index=7}\nif (b64.length > 5 * 1024 * 1024) {\n  throw new Error('SeaTalk image exceeds 5MB limit after base64 encoding');\n}\n\nreturn [{\n  json: { img_base64: b64 },\n  binary: $binary\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3664,
+        -352
+      ],
+      "id": "4e805dc9-8686-4e77-b6da-df082e572870",
+      "name": "image_path"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8467d693-ab0d-4d77-9271-9fb8bd583b81",
+              "leftValue": "={{$json.code === 0}}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4064,
+        -352
+      ],
+      "id": "3d6f3aa0-befb-4ca2-bb0e-da30ddd3f620",
+      "name": "IMAGE SENT OK?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const retryCount_img = ($json.retryCount_img ?? 0) + 1;\n\nreturn [{\n  json: {\n    ...$json,\n    retryCount_img\n  },\n  binary: $binary\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4336,
+        -336
+      ],
+      "id": "82fb1f1c-3de5-4005-9a0d-c5c0b2f15ce6",
+      "name": "INCREMENT RETRY COUNT (IMAGE)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "718dc2f4-d487-41b9-99cd-d1a5c70bc2af",
+              "leftValue": "={{$json.retryCount_img <= ($json.maxRetries ?? 3)}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4544,
+        -336
+      ],
+      "id": "242a108f-0687-489b-80dc-c88758c29e21",
+      "name": "RETRY LEFT? (IMAGE)"
+    },
+    {
+      "parameters": {
+        "amount": "=={{$json.retryDelaySec ?? 5}}"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        4864,
+        -352
+      ],
+      "id": "35e6a681-3f23-4db8-a682-eacf2c4bdd74",
+      "name": "WAIT BEFORE RETRY (IMAGE)",
+      "webhookId": "cf5cf850-e674-4375-81db-d643974f756f"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { ...$json, notification_status: \"failed\" }, binary: $binary }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4192,
+        96
+      ],
+      "id": "f9b01831-d71e-4a65-8912-8d14173b1ff3",
+      "name": "NOTIFICATION FAILED - STOP"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { ...$json, notification_status: \"failed\" }, binary: $binary }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4864,
+        -128
+      ],
+      "id": "eb73c6ba-a2b3-44b6-9353-6861c3140146",
+      "name": "NOTIFICATION FAILED - STOP1"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res",
+          "mode": "list",
+          "cachedResultName": "[SOC 5] Outbound Internal SOCPacked Report v1.0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2030780141,
+          "mode": "list",
+          "cachedResultName": "Backlogs Summary",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/edit#gid=2030780141"
+        },
+        "event": "rowUpdate",
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "specifyRangeA1",
+              "range": "A1"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        2256,
+        -256
+      ],
+      "id": "bd83d64a-887d-4997-be99-5bb3a31fa66e",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "oG3Kbt2SnKW5HfIJ",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = this.getWorkflowStaticData('global');\nconst key = `run_${$execution.id}`;\ndata[key] = Date.now();\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        -160
+      ],
+      "id": "bc676218-4b65-4666-acbc-99f1b9acec21",
+      "name": "Start timer"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b444140b-38be-4e3d-88e1-2fbbc2c3317f",
+              "leftValue": "={{$json.values?.[0]?.[0]}}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isEmpty"
+              }
+            },
+            {
+              "id": "9f9d2241-934e-4aee-a63d-8b39c1318225",
+              "leftValue": "={{$json.values?.[0]?.[0]}}",
+              "rightValue": "={{$node[\"Google Drive Trigger\"].json[\"id\"]}}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        -240
+      ],
+      "id": "83cbe810-fa8b-4c8e-849e-3d5973758288",
+      "name": "Check duplicate file"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -320
+      ],
+      "id": "8b323dcc-afc9-4ed1-860a-6a0edc74f48d",
+      "name": "Duplicate - stop"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = this.getWorkflowStaticData('global');\nconst key = `run_${$execution.id}`;\nconst start = data[key];\nconst end = Date.now();\nconst durationMs = (typeof start === 'number') ? (end - start) : null;\nif (key in data) delete data[key];\nconst durationSec = (durationMs == null) ? null : Math.round((durationMs/1000)*100)/100;\nreturn [{ json: { ...$json, durationMs, durationSec } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        -64
+      ],
+      "id": "29bc1f54-29d5-4a2e-b3f8-5ce650e0108b",
+      "name": "Compute duration"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!D1?valueInputOption=RAW",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"majorDimension\": \"ROWS\",\n  \"values\": [[\"{{$json.durationSec}}\"]]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2176,
+        -64
+      ],
+      "id": "14d15dcc-b1f8-4c46-ad28-544033ea53a5",
+      "name": "SAVE DURATION",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = this.getWorkflowStaticData('global');\nconst valuesKey = `values_${$execution.id}`;\nconst countKey = `rowCountKept_${$execution.id}`;\nconst vals = $json.values;\nif (Array.isArray(vals)) {\n  data[valuesKey] = vals;\n  data[countKey] = vals.length;\n}\nreturn [{ json: { stored: Array.isArray(vals) ? vals.length : 0 } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -224
+      ],
+      "id": "bb60a4cc-6c4b-4ee3-beb4-9fe8b86b2c63",
+      "name": "Store values"
+    },
+    {
+      "parameters": {
+        "jsCode": "const envSize = Number($env.BATCH_UPDATE_SIZE ?? 10);\nconst batchSize = Number.isFinite(envSize) && envSize > 0 ? Math.floor(envSize) : 10;\nconst out = [];\nlet batch = [];\nfor (const it of items) {\n  batch.push({ range: it.json.range, values: it.json.values });\n  if (batch.length >= batchSize) {\n    out.push({ json: { data: batch } });\n    batch = [];\n  }\n}\nif (batch.length) out.push({ json: { data: batch } });\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        -96
+      ],
+      "id": "02c423a6-8ffe-4f0a-854c-fadb7a0fdd21",
+      "name": "Group chunks"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = this.getWorkflowStaticData('global');\nconst key = `rowCountKept_${$execution.id}`;\nconst kept = data[key];\nif (key in data) delete data[key];\nreturn [{ json: { shouldLog: (typeof kept === 'number' ? kept : 0) > 0 } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1488,
+        -240
+      ],
+      "id": "7d2b4f0b-6a2a-4b44-8f1f-0b64a9b19c2b",
+      "name": "Should log? (code)"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6c6c8b3e-2c3b-4c7f-9af6-8b2b23f1a1e8",
+              "leftValue": "={{$json.shouldLog}}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1664,
+        -240
+      ],
+      "id": "9fb8a884-5f3a-4a7e-9a2b-6f1d0f6dd9fb",
+      "name": "Has Rows?"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "https://sheets.googleapis.com/v4/spreadsheets/1QGrwNXNHIdUl1nT1mF5_6o9LefZqfPIs2fLuzae3Res/values/config!B1?valueInputOption=RAW",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"majorDimension\": \"ROWS\",\n  \"values\": [[\"{{$node['Google Drive Trigger'].json['id']}}\"]]\n}\n",
+        "options": {
+          "response": {}
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1824,
+        -240
+      ],
+      "id": "aa3b4c87-6f33-4a1a-9a88-6d6a40f6c3f4",
+      "name": "SAVE LAST PROCESSED FILE ID (NOLOG)",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "2xXUtzry9YcYpmis",
+          "name": "Unnamed credential 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Start timer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Decompress",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Filter + map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear sheet": {
+      "main": [
+        [
+          {
+            "node": "make chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decompress": {
+      "main": [
+        [
+          {
+            "node": "Merge all csv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ZIP-only check": {
+      "main": [
+        [
+          {
+            "node": "GET last processed file id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GET last processed file id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET last processed file id": {
+      "main": [
+        [
+          {
+            "node": "Check duplicate file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter + map": {
+      "main": [
+        [
+          {
+            "node": "Store values",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PUT bulk data": {
+      "main": [
+        [
+          {
+            "node": "Replace Me",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOG THE RUN": {
+      "main": [
+        [
+          {
+            "node": "Build new log block",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build new log block": {
+      "main": [
+        [
+          {
+            "node": "Write updated log block back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write updated log block back": {
+      "main": [
+        [
+          {
+            "node": "SAVE LAST PROCESSED FILE ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "make chunks": {
+      "main": [
+        [
+          {
+            "node": "Group chunks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "PUT bulk data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Should log? (code)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Me": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge all csv": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prevent clearing": {
+      "main": [
+        [
+          {
+            "node": "ZIP-only check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAVE LAST PROCESSED FILE ID": {
+      "main": [
+        [
+          {
+            "node": "Compute duration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "10sec waiting": {
+      "main": [
+        [
+          {
+            "node": "EXPORT DASHBOARD png",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EXPORT DASHBOARD png": {
+      "main": [
+        [
+          {
+            "node": "BUILD SEATALK TEXT (TZ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BUILD SEATALK TEXT (TZ": {
+      "main": [
+        [
+          {
+            "node": "INIT NOTIFICATION CONTEXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEATALK WEBHOOK SEND TEXT": {
+      "main": [
+        [
+          {
+            "node": "TEXT SENT OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TEXT SENT OK?": {
+      "main": [
+        [
+          {
+            "node": "image_path",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "INCREMENT RETRY COUNT (TEXT)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INIT NOTIFICATION CONTEXT": {
+      "main": [
+        [
+          {
+            "node": "SEATALK WEBHOOK SEND TEXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INCREMENT RETRY COUNT (TEXT)": {
+      "main": [
+        [
+          {
+            "node": "RETRY LEFT? (TEXT)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RETRY LEFT? (TEXT)": {
+      "main": [
+        [
+          {
+            "node": "WAIT BEFORE RETRY (TEXT)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NOTIFICATION FAILED - STOP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WAIT BEFORE RETRY (TEXT)": {
+      "main": [
+        [
+          {
+            "node": "SEATALK WEBHOOK SEND TEXT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "image_path": {
+      "main": [
+        [
+          {
+            "node": "SEATALK WEBHOOK SEND IMAGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SEATALK WEBHOOK SEND IMAGE": {
+      "main": [
+        [
+          {
+            "node": "IMAGE SENT OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IMAGE SENT OK?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "INCREMENT RETRY COUNT (IMAGE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INCREMENT RETRY COUNT (IMAGE)": {
+      "main": [
+        [
+          {
+            "node": "RETRY LEFT? (IMAGE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RETRY LEFT? (IMAGE)": {
+      "main": [
+        [
+          {
+            "node": "WAIT BEFORE RETRY (IMAGE)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NOTIFICATION FAILED - STOP1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WAIT BEFORE RETRY (IMAGE)": {
+      "main": [
+        [
+          {
+            "node": "SEATALK WEBHOOK SEND IMAGE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prevent clearing1": {
+      "main": [
+        []
+      ]
+    },
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "10sec waiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start timer": {
+      "main": [
+        [
+          {
+            "node": "Prevent clearing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check duplicate file": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Duplicate - stop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute duration": {
+      "main": [
+        [
+          {
+            "node": "SAVE DURATION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAVE DURATION": {
+      "main": [
+        [
+          {
+            "node": "Prevent clearing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store values": {
+      "main": [
+        [
+          {
+            "node": "Clear sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Group chunks": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should log? (code)": {
+      "main": [
+        [
+          {
+            "node": "Has Rows?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Rows?": {
+      "main": [
+        [
+          {
+            "node": "LOG THE RUN",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "SAVE LAST PROCESSED FILE ID (NOLOG)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAVE LAST PROCESSED FILE ID (NOLOG)": {
+      "main": [
+        [
+          {
+            "node": "Prevent clearing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "binaryMode": "separate",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "none",
+    "saveExecutionProgress": false,
+    "saveManualExecutions": false,
+    "timezone": "Asia/Manila"
+  },
+  "versionId": "182253cf-ae82-49c2-9e95-e258ffd56890",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4fe7b609952d96175a368bb420836f464b46cfe8ed2acecc1c47017354d43b59"
+  },
+  "id": "L55cJE1w7gUTtID67MThi",
+  "tags": []
+}

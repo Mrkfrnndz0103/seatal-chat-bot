@@ -20,8 +20,42 @@ This repository includes a runnable FastAPI webhook bot integrated with separate
 - `app/seatalk/client.py`: SeaTalk API client (group/single messages + typing status).
 - `app/seatalk/events.py`: event router that invokes both workflows.
 - `app/workflows/chat/`: LangGraph chat pipeline.
-- `app/workflows/automation/`: LangGraph automation pipeline.
+- `app/workflows/manager.py`: workflow dispatcher for automation pipelines.
+- `app/workflows/backlogs/`: backlog automation workflow.
+- `app/workflows/stuckup/`: stuckup automation workflow.
+- `app/workflows/lhpending_request/`: LH pending request automation workflow.
+- `app/workflows/mdt/`: MDT automation workflow.
+- `app/workflows/automation/`: base platform automation (typing/welcome/interaction handling).
 - `app/config.py`: env-driven settings.
+
+## Workflow Folder Structure
+
+Automation workflows are separated by subfolder for scale:
+
+```text
+app/workflows/
+  backlogs/
+  stuckup/
+  lhpending_request/
+  mdt/
+```
+
+Each workflow has its own `workflow.py` and is wired via `app/workflows/manager.py`.
+Typical update payload pattern for Drive/Sheet-to-SeaTalk automation:
+
+```json
+{
+  "event_type": "workflow_update",
+  "event": {
+    "workflow": "backlogs",
+    "group_id": "12345",
+    "sheet_update": {
+      "img_1": "https://.../image.png",
+      "text": "Daily backlog summary"
+    }
+  }
+}
+```
 
 ## Quick Start
 
@@ -159,3 +193,4 @@ https://seatalk-bot.romark-fernandez.workers.dev/seatalk/callback
 
 - `LLM_BASE_URL` lets you use OpenAI-compatible providers (including DashScope-compatible endpoints).
 - SeaTalk callback `Signature` header verification is not included because signing algorithm details are not present in the provided docs.
+- Full test checklist is available at `docs/test_plan.md`.
